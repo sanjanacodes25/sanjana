@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Pigeon Hearts Animation + Quiz</title>
+  <style>
+    body {
+      margin: 0;
+      background: pink; /* pink background at the beginning */
+      font-family: 'Poppins', sans-serif;
+      text-align: center;
+      overflow-x: hidden;
+    }
+
+    /* Pigeon */
+    #pigeon {
+      font-size: 50px;
+      cursor: pointer;
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      z-index: 100;
+      transition: transform 0.3s ease;
+    }
+    #pigeon.clicked {
+      transform: scale(1.3) rotate(-15deg);
+    }
+
+    /* Hearts */
+    .heart {
+      position: absolute;
+      font-size: 20px;
+      color: red;
+      animation: fall linear forwards;
+    }
+    @keyframes fall {
+      0% { transform: translateY(-50px) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+    }
+
+    /* Button */
+    #memoryBtn {
+      display: none;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      padding: 12px 20px;
+      font-size: 18px;
+      border: none;
+      border-radius: 8px;
+      background: #ff4081;
+      color: white;
+      cursor: pointer;
+      z-index: 200;
+      opacity: 0;
+      transition: opacity 1s ease, background 0.3s;
+    }
+    #memoryBtn.show { display: block; opacity: 1; }
+    #memoryBtn:hover { background: #e91e63; }
+
+    /* Quiz Section */
+    #quizContainer {
+      display: none;
+      position: absolute;
+      top: 10%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80%;
+      max-width: 600px;
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+      z-index: 300;
+    }
+    #quizContainer h2 { color: #ff4081; }
+    .option {
+      display: block; margin: 10px 0; padding: 10px;
+      background: #ffd1dc; border-radius: 8px;
+      cursor: pointer; transition: background 0.3s;
+    }
+    .option:hover { background: #ffb6c1; }
+    #quizImage {
+      margin-top: 15px; max-width: 100%; max-height: 300px;
+      border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      object-fit: contain;
+    }
+    #feedback { margin-top: 10px; font-weight: bold; color: #e91e63; }
+    #finalMessage { font-size: 20px; margin-top: 15px; color: #e91e63; font-weight: bold; }
+
+    /* Collage */
+    #collage {
+      display: none; text-align: center; padding: 40px 20px;
+      background: #fff0f6;
+    }
+    #collage h1 {
+      color: #d81b60; font-size: 32px; margin-bottom: 20px;
+      text-shadow: 2px 2px #ffc0cb;
+    }
+    .collage-grid {
+      display: flex; justify-content: center; gap: 15px; flex-wrap: wrap;
+    }
+    .collage-grid img {
+      width: 30%; max-width: 200px; border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25); object-fit: cover;
+    }
+
+    /* Extended Collage */
+    #extendedCollage {
+      display: none; margin-top: 50px; padding: 40px 20px; background: #fff0f6;
+    }
+    #extendedCollage h2 {
+      color: #c2185b; font-size: 28px; margin-bottom: 30px; text-shadow: 1px 1px #ffb6c1;
+    }
+    .extended-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 40px;
+    }
+    .extended-grid .img-block {
+      text-align: center; opacity: 0; transform: translateY(40px);
+      transition: opacity 1s ease, transform 1s ease;
+      position: relative;
+      cursor: pointer;
+    }
+    .extended-grid .img-block.show { opacity: 1; transform: translateY(0); }
+    .extended-grid img {
+      width: 100%; max-width: 280px; border-radius: 15px;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+    }
+    .caption {
+      margin-top: 10px; font-size: 16px; color: #880e4f; font-weight: 500;
+      opacity: 0; transition: opacity 1s ease 0.5s;
+    }
+    .img-block.show .caption { opacity: 1; }
+
+    /* Hover message overlay */
+    .hover-message {
+      position: absolute;
+      bottom: 15px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(255, 64, 129, 0.9);
+      color: white;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    .img-block:hover .hover-message {
+      opacity: 1;
+    }
+
+    /* Plant Pot Button */
+    #scottBtn {
+      display: none;
+      margin: 50px auto;
+      font-size: 60px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.3s;
+    }
+    #scottBtn:hover { transform: scale(1.2); }
+
+    /* Poem Section */
+    #poemSection {
+      display: none;
+      min-height: 100vh;
+      padding: 60px 20px;
+      background: url('memory12.jpg') no-repeat center/cover;
+      color: white;
+      font-family: 'Dancing Script', cursive;
+      text-shadow: 2px 2px 6px rgba(0,0,0,0.7);
+    }
+    #poemSection h2 {
+      font-size: 40px; margin-bottom: 20px;
+    }
+    #poemSection p {
+      font-size: 24px; line-height: 1.8; max-width: 800px;
+      margin: 0 auto;
+    }
+
+    /* Final Surprise Page */
+    #finalPage {
+      display: none;
+      position: relative;
+      min-height: 100vh;
+      background: linear-gradient(120deg, #ffe6eb, #ffd1dc, #ffc0cb);
+      overflow: hidden;
+      text-align: center;
+      padding: 60px 20px;
+    }
+
+    #memeImage {
+      width: 280px;
+      max-width: 80%;
+      border-radius: 20px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+      animation: popIn 1s ease forwards;
+    }
+
+    #finalPage h2 {
+      margin-top: 20px;
+      font-size: 32px;
+      color: #c2185b;
+      text-shadow: 2px 2px #fff;
+      animation: fadeIn 2s ease forwards;
+    }
+
+    @keyframes popIn {
+      0% { transform: scale(0.5); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    @keyframes fadeIn {
+      0% { opacity: 0; }
+      100% { opacity: 1; }
+    }
+
+    .floating-heart {
+      position: absolute;
+      top: -20px;
+      color: red;
+      font-size: 20px;
+      animation: floatDown 6s linear infinite;
+      opacity: 0.8;
+    }
+    @keyframes floatDown {
+      0% { transform: translateY(-50px) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(110vh) rotate(360deg); opacity: 0; }
+    }
+  </style>
+  <!-- Romantic Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@500&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Pigeon -->
+  <div id="pigeon">🕊️</div>
+
+  <!-- Button -->
+  <button id="memoryBtn">Ready to go down the memory lane</button>
+
+  <!-- Quiz Container -->
+  <div id="quizContainer">
+    <h2 id="questionText"></h2>
+    <div id="options"></div>
+    <div id="feedback"></div>
+    <img id="quizImage" src="" alt="" style="display:none;">
+    <div id="finalMessage"></div>
+  </div>
+
+  <!-- Collage -->
+  <div id="collage">
+    <h1>HAPPY 1 YEAR ANNIVERSARY 🎉❤️</h1>
+    <div class="collage-grid">
+      <img src="memory1.jpg" alt="Memory 1">
+      <img src="memory2.jpg" alt="Memory 2">
+      <img src="memory3.jpg" alt="Memory 3">
+    </div>
+  </div>
+
+  <!-- Extended Collage -->
+  <div id="extendedCollage">
+    <h2>When odisha meets Lucknow❤️</h2>
+    <div class="extended-grid" id="extendedGrid"></div>
+    <!-- Plant pot button -->
+    <button id="scottBtn">🪴</button>
+  </div>
+
+  <!-- Poem Section -->
+  <div id="poemSection">
+    <h2>Dear Jerry❤️</h2>
+    <p>
+      For 20 years i chased Love,<br>
+      and it finally found me through you.<br>
+      Some days i wake up feeling like everything's falling apart,<br>
+      But then there's you-picking up my pieces making problems dissapear as if like it was nothing.<br>
+      With you Love feels Effortless✨
+    </p>
+  </div>
+
+  <!-- Final Surprise Section -->
+  <div id="finalPage">
+    <div class="final-content">
+      <img src="meme.jpg" alt="Cute Meme" id="memeImage">
+      <h2>Forever Us ❤️</h2>
+    </div>
+  </div>
+
+  <script>
+    const pigeon = document.getElementById('pigeon');
+    const memoryBtn = document.getElementById('memoryBtn');
+    const quizContainer = document.getElementById('quizContainer');
+    const questionText = document.getElementById('questionText');
+    const optionsDiv = document.getElementById('options');
+    const feedback = document.getElementById('feedback');
+    const quizImage = document.getElementById('quizImage');
+    const finalMessage = document.getElementById('finalMessage');
+    const collage = document.getElementById('collage');
+    const extendedCollage = document.getElementById('extendedCollage');
+    const extendedGrid = document.getElementById('extendedGrid');
+    const scottBtn = document.getElementById('scottBtn');
+    const poemSection = document.getElementById('poemSection');
+
+    let currentQuestion = 0;
+
+    // Quiz data
+    const quiz = [
+      { question: "Where did we meet first?", type: "text", answer: "litmus nightperm", image: "memory3.jpg", caption: "Where everything started! 🌅" },
+      { question: "How to impress Sanjana after you fought?", type: "mcq", options: ["Hug and chocolates","Give space","Flowers","Run and ask for help"], answer: "hug and chocolates", image: "memory2.jpg", caption: "Because love heals💖" },
+      { question: "What date did we become official?(dd-mm-yy)", type: "text", answer: "18-09-24", image: "memory1.jpg", caption: "The day we became ‘us’ 💑" }
+    ];
+
+    // Extra collage data with messages
+    const extraImages = [
+      {src: "memory4.jpg", caption: "Love during MUN😊", message: "i was so proud of you that day😍"},
+      {src: "memory5.jpg", caption: "That one old couple🌍", message: "You hung out with my friends and this very moment fed my bollywood cravings✈️"},
+      {src: "memory9.jpg", caption: "Full shaadi Look 🎉", message: "1 ghanta tareef karne ka about my saree look ka promise is still pending🥳"},
+      {src: "memory7.jpg", caption: "Laughs that never end 😂", message: "Your laugh = my happiness 🌸"},
+      {src: "memory8.jpg", caption: "Promproposal🌌", message: "it was so special for me, Thank you🌙"},
+      {src: "memory6.jpg", caption: "US", message: "Handsome couple to h hum💕"},
+      {src: "memory10.jpg", caption: "Twinning💕", message: "sorry tera baal kharab kardiya but abhi bhi cutie lag raha h 💖"},
+      {src: "memory11.jpg", caption: "ek aur bollywood dream poora hogaya😜", message: "that day was so fun n hot at JLF😍"},
+      {src: "memory12.jpg", caption: "🤗", message: "Ab to tere lame jokes pe bhi hass deti hun, mera khel khatam h🤍"},
+      {src: "memory13.jpg", caption: "mera jerry🐻", message: "bola nahi tha but uss din u looked out of the world🧸"},
+      {src: "memory15.jpg", caption: "Chai at Highway✨", message: "Never Letting Go"},
+      {src: "memory14.jpg", caption: "Masti at Mess🤝", message: "This winter was better for you and i promise the next all winters will be the best✨"},
+      {src: "memory16.jpg", caption: "The best chapter of us 📖", message: "Bestfriends first and forever💌"}
+    ];
+
+    // Pigeon click
+    pigeon.addEventListener('click', () => {
+      pigeon.classList.add("clicked");
+      let heartInterval = setInterval(() => {
+        const heart = document.createElement('div');
+        heart.className = 'heart';
+        heart.style.left = Math.random() * 100 + 'vw';
+        heart.style.fontSize = (15 + Math.random() * 25) + 'px';
+        heart.style.animationDuration = (2 + Math.random() * 3) + 's';
+        heart.innerHTML = '❤️';
+        document.body.appendChild(heart);
+        setTimeout(() => heart.remove(), 4000);
+      }, 150);
+      setTimeout(() => clearInterval(heartInterval), 3000);
+      setTimeout(() => memoryBtn.classList.add("show"), 2000);
+    });
+
+    // Start quiz
+    memoryBtn.addEventListener('click', () => {
+      memoryBtn.style.display = 'none';
+      quizContainer.style.display = 'block';
+      showQuestion();
+    });
+
+    // Show question
+    function showQuestion() {
+      const q = quiz[currentQuestion];
+      questionText.textContent = q.question;
+      optionsDiv.innerHTML = ""; feedback.textContent = ""; quizImage.style.display = "none"; finalMessage.textContent = "";
+      if (q.type === "mcq") {
+        q.options.forEach(opt => {
+          const btn = document.createElement('div');
+          btn.className = 'option'; btn.textContent = opt;
+          btn.onclick = () => handleAnswer(opt); optionsDiv.appendChild(btn);
+        });
+      } else {
+        const input = document.createElement('input');
+        input.type = "text"; input.placeholder = "Type your answer...";
+        input.style.padding = "8px"; input.style.width = "80%";
+        input.style.borderRadius = "6px"; input.style.border = "1px solid #ccc";
+        optionsDiv.appendChild(input);
+        const submitBtn = document.createElement('button');
+        submitBtn.textContent = "Submit"; submitBtn.style.marginTop = "10px";
+        submitBtn.onclick = () => handleAnswer(input.value.trim());
+        optionsDiv.appendChild(submitBtn);
+      }
+    }
+
+    // Handle answer
+    function handleAnswer(ans) {
+      const q = quiz[currentQuestion];
+      if (ans.toLowerCase() === q.answer.toLowerCase()) {
+        quizImage.src = q.image; quizImage.style.display = "block";
+        quizImage.alt = q.caption; feedback.textContent = q.caption;
+        setTimeout(() => {
+          currentQuestion++;
+          if (currentQuestion < quiz.length) showQuestion();
+          else finishQuiz();
+        }, 2500);
+      } else feedback.textContent = "Nope 😜 Try again!";
+    }
+
+    // Final screen
+    function finishQuiz() {
+      quizContainer.style.display = "none"; collage.style.display = "block";
+      extraImages.forEach(imgData => {
+        const block = document.createElement("div");
+        block.className = "img-block";
+        block.innerHTML = `
+          <img src="${imgData.src}" alt="">
+          <div class="caption">${imgData.caption}</div>
+          <div class="hover-message">${imgData.message}</div>
+        `;
+        extendedGrid.appendChild(block);
+      });
+      extendedCollage.style.display = "block";
+      const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add("show"); });
+      }, { threshold: 0.2 });
+      document.querySelectorAll('.img-block').forEach(block => observer.observe(block));
+      scottBtn.style.display = "block";
+    }
+
+    // Plant pot → Poem
+    scottBtn.addEventListener('click', () => {
+      poemSection.style.display = "block";
+      poemSection.scrollIntoView({ behavior: "smooth" });
+    });
+
+    // Show final page when scrolled to bottom
+    window.addEventListener('scroll', () => {
+      if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 50) {
+        showFinalPage();
+      }
+    });
+
+    function showFinalPage() {
+      if (document.getElementById("finalPage").style.display === "block") return;
+      document.getElementById("finalPage").style.display = "block";
+      setInterval(() => {
+        const heart = document.createElement('div');
+        heart.className = 'floating-heart';
+        heart.innerHTML = '❤️';
+        heart.style.left = Math.random() * 100 + 'vw';
+        heart.style.fontSize = (15 + Math.random() * 30) + 'px';
+        heart.style.animationDuration = (4 + Math.random() * 3) + 's';
+        document.getElementById("finalPage").appendChild(heart);
+        setTimeout(() => heart.remove(), 7000);
+      }, 400);
+    }
+  </script>
+</body>
+</html>
